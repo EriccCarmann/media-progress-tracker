@@ -1,7 +1,7 @@
 ﻿using ObjCRuntime;
 using UIKit;
 
-namespace Media_Progress_Tracker;
+namespace MediaProgressTracker;
 
 public class Program
 {

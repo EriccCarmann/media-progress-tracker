@@ -1,6 +1,6 @@
 ﻿using Foundation;
 
-namespace Media_Progress_Tracker;
+namespace MediaProgressTracker;
 
 [Register("AppDelegate")]
 public class AppDelegate : MauiUIApplicationDelegate

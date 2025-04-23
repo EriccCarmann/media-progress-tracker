@@ -1,4 +1,7 @@
-﻿namespace Media_Progress_Tracker
+﻿using MediaProgressTracker.Services.Abstract;
+using MediaProgressTracker.Services.Implementation;
+
+namespace MediaProgressTracker
 {
     public partial class MainPage : ContentPage
     {

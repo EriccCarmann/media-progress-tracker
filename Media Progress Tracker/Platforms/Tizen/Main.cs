@@ -2,7 +2,7 @@ using System;
 using Microsoft.Maui;
 using Microsoft.Maui.Hosting;
 
-namespace Media_Progress_Tracker;
+namespace MediaProgressTracker;
 
 class Program : MauiApplication
 {

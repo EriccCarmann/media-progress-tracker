@@ -1,7 +1,7 @@
 ﻿using Android.App;
 using Android.Runtime;
 
-namespace Media_Progress_Tracker;
+namespace MediaProgressTracker;
 
 [Application]
 public class MainApplication : MauiApplication

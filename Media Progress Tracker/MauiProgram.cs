@@ -1,6 +1,8 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using MediaProgressTracker.Services.Abstract;
+using MediaProgressTracker.Services.Implementation;
+using Microsoft.Extensions.Logging;
 
-namespace Media_Progress_Tracker;
+namespace MediaProgressTracker;
 
 public static class MauiProgram
 {
@@ -15,6 +17,7 @@ public static class MauiProgram
 				fonts.AddFont("OpenSans-Semibold.ttf", "OpenSansSemibold");
 			});
 
+		builder.Services.AddSingleton<ISteamSpyService, SteamSpyService>();
 #if DEBUG
 		builder.Logging.AddDebug();
 #endif

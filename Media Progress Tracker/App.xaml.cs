@@ -1,4 +1,4 @@
-﻿namespace Media_Progress_Tracker
+﻿namespace MediaProgressTracker
 {
     public partial class App : Application
     {
