@@ -3,6 +3,8 @@ using MediaProgressTracker.Services.Abstract;
 using Newtonsoft.Json.Linq;
 using System.Globalization;
 using System.Net.Http;
+using System.Text.Json;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 public class SteamSpyService : ISteamSpyService
 {
@@ -19,6 +21,11 @@ public class SteamSpyService : ISteamSpyService
 
     public async Task<IEnumerable<Game>> GetTop100In2WeeksAsync()
     {
+        await ToJson();
+
+        Console.WriteLine(File.ReadAllText("all_games.json"));
+        //var content1 = await response1.Content.ReadAsStringAsync();
+
         var response = await _httpClient.GetAsync("api.php?request=top100in2weeks");
         response.EnsureSuccessStatusCode();
         var content = await response.Content.ReadAsStringAsync();
@@ -71,5 +78,21 @@ public class SteamSpyService : ISteamSpyService
         }
 
         return games;
+    }
+
+    public async Task ToJson()
+    {
+        var response1 = await _httpClient.GetAsync("api.php?request=appdetails&appid=730");
+        response1.EnsureSuccessStatusCode();
+
+        string jsonContent = await response1.Content.ReadAsStringAsync();
+        string json = JsonSerializer.Serialize(jsonContent);
+
+        // Get the app’s private storage path
+        string folder = FileSystem.AppDataDirectory;
+        // e.g. /data/user/0/com.yourcompany.yourapp/files
+        string filePath = Path.Combine(folder, "all_games.json");
+
+        File.WriteAllText(filePath, json);
     }
 }

@@ -24,18 +24,18 @@
                         <Frame Padding="10" Margin="0,5" HasShadow="True" CornerRadius="8">
                             <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto">
                                 <Label
-                    Grid.Row="0" Grid.Column="0"
-                    Text="{Binding Name}"
-                    FontAttributes="Bold"/>
+                                    Grid.Row="0" Grid.Column="0"
+                                    Text="{Binding Name}"
+                                    FontAttributes="Bold"/>
                                 <Label
-                    Grid.Row="0" Grid.Column="1"
-                    Text="{Binding CCU, StringFormat='CCU: {0}'}"/>
+                                    Grid.Row="0" Grid.Column="1"
+                                    Text="{Binding CCU, StringFormat='CCU: {0}'}"/>
                                 <Label
-                    Grid.Row="1" Grid.Column="0"
-                    Text="{Binding Average2Weeks, StringFormat='Last 2w avg: {0:F1}h'}"/>
+                                    Grid.Row="1" Grid.Column="0"
+                                    Text="{Binding Average2Weeks, StringFormat='Last 2w avg: {0:F1}h'}"/>
                                 <Label
-                    Grid.Row="1" Grid.Column="1"
-                    Text="{Binding Owners}"/>
+                                    Grid.Row="1" Grid.Column="1"
+                                    Text="{Binding Owners}"/>
                             </Grid>
                         </Frame>
                     </DataTemplate>
