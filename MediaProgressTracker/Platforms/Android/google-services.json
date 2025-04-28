@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "563154510287",
+    "project_id": "mediaprogresstracker",
+    "storage_bucket": "mediaprogresstracker.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:563154510287:android:8150160150c52db4b232ba",
+        "android_client_info": {
+          "package_name": "com.company.mediaprogresstracker"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCAOKX-qs9d3KyJofqu8s5kAHSl7hR5M-0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
