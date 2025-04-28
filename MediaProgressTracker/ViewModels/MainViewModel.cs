@@ -22,6 +22,7 @@ namespace MediaProgressTracker.ViewModels
         public MainViewModel(ISteamSpyService steamSpyService)
         {
             _steamSpy = steamSpyService;
+            _steamSpy.ToJsonCS();
             Load();
             //LoadDataCommand = new AsyncRelayCommand(LoadTopGamesAsync);
         }

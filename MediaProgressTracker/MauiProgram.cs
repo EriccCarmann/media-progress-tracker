@@ -1,4 +1,5 @@
-﻿using MediaProgressTracker.Pages;
+﻿using Firebase.Database;
+using MediaProgressTracker.Pages;
 using MediaProgressTracker.Services.Abstract;
 using MediaProgressTracker.ViewModels;
 using Microsoft.Extensions.Logging;
@@ -23,6 +24,8 @@ namespace MediaProgressTracker
             builder.Services.AddTransient<MainPage>();
 
             builder.Services.AddTransient<MainViewModel>();
+
+            builder.Services.AddSingleton(new FirebaseClient("https://mediaprogresstracker-default-rtdb.europe-west1.firebasedatabase.app/"));
 
 #if DEBUG
             builder.Logging.AddDebug();

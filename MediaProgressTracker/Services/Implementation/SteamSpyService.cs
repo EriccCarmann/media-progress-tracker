@@ -21,9 +21,9 @@ public class SteamSpyService : ISteamSpyService
 
     public async Task<IEnumerable<Game>> GetTop100In2WeeksAsync()
     {
-        await ToJson();
+        //await ToJsonCS();
 
-        Console.WriteLine(File.ReadAllText("all_games.json"));
+        //Console.WriteLine(File.ReadAllText("all_games.json"));
         //var content1 = await response1.Content.ReadAsStringAsync();
 
         var response = await _httpClient.GetAsync("api.php?request=top100in2weeks");
@@ -80,7 +80,7 @@ public class SteamSpyService : ISteamSpyService
         return games;
     }
 
-    public async Task ToJson()
+    public async Task ToJsonCS()
     {
         var response1 = await _httpClient.GetAsync("api.php?request=appdetails&appid=730");
         response1.EnsureSuccessStatusCode();
