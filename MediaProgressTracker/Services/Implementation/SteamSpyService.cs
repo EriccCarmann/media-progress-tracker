@@ -10,7 +10,7 @@ public class SteamSpyService : ISteamSpyService
 {
     private readonly FirebaseClient _firebaseClient;
     private readonly HttpClient _httpClient;
-    private readonly List<Game> gameList = new List<Game>();
+    private readonly List<Game> gameListDb = new List<Game>();
     private const string BaseUrl = "https://steamspy.com/";
 
     public SteamSpyService(FirebaseClient firebaseClient)
@@ -21,6 +21,7 @@ public class SteamSpyService : ISteamSpyService
             BaseAddress = new Uri(BaseUrl)
         };
 
+        gameListDb.Clear();
 
         var gamesDb = _firebaseClient
                 .Child("Games")
@@ -29,10 +30,8 @@ public class SteamSpyService : ISteamSpyService
 
         foreach (var game in gamesDb)
         {
-            gameList.Add(game.Object);
+            gameListDb.Add(game.Object);
         }
-
-        GetGameByAppIdAsync(1577460);
 
         //var games = _firebaseClient
         //                .Child("Games")
@@ -46,7 +45,7 @@ public class SteamSpyService : ISteamSpyService
         //                });
 
 
-        //GetAllGamesAsync();
+        GetAllGamesAsync();
 
 
         //Task.Run(async () => await GetAllGamesAsync());
@@ -178,57 +177,32 @@ public class SteamSpyService : ISteamSpyService
         {
             var j = (JObject)prop.Value;
 
-            games.Add(new Game
+            foreach (var game in gameListDb)
             {
-                AppId = ParseInt(j["appid"]),
-                Name = (string)j["name"] ?? "",
-                Developer = (string)j["developer"] ?? "",
-                Publisher = (string)j["publisher"] ?? "",
-                ScoreRank = j["score_rank"]?.ToString() ?? "",
-                PositiveReviews = ParseInt(j["positive"]),
-                NegativeReviews = ParseInt(j["negative"]),
-                UserScore = ParseInt(j["userscore"]),
-                Owners = (string)j["owners"] ?? "",
-                AverageForever = ParseDecimal(j["average_forever"]),
-                Average2Weeks = ParseDecimal(j["average_2weeks"]),
-                MedianForever = ParseDecimal(j["median_forever"]),
-                Median2Weeks = ParseDecimal(j["median_2weeks"]),
-                Price = ParseDecimal(j["price"]),
-                InitialPrice = ParseDecimal(j["initialprice"]),
-                Discount = ParseDecimal(j["discount"]),
-                CCU = ParseInt(j["ccu"])
-            });
-
-            //foreach (var game in gameList)
-            //{
-            //    if (game.Name != prop.Name)
-            //    {
-            //        games.Add(new Game
-            //        {
-            //            AppId = ParseInt(j["appid"]),
-            //            Name = (string)j["name"] ?? "",
-            //            Developer = (string)j["developer"] ?? "",
-            //            Publisher = (string)j["publisher"] ?? "",
-            //            ScoreRank = j["score_rank"]?.ToString() ?? "",
-            //            PositiveReviews = ParseInt(j["positive"]),
-            //            NegativeReviews = ParseInt(j["negative"]),
-            //            UserScore = ParseInt(j["userscore"]),
-            //            Owners = (string)j["owners"] ?? "",
-            //            AverageForever = ParseDecimal(j["average_forever"]),
-            //            Average2Weeks = ParseDecimal(j["average_2weeks"]),
-            //            MedianForever = ParseDecimal(j["median_forever"]),
-            //            Median2Weeks = ParseDecimal(j["median_2weeks"]),
-            //            Price = ParseDecimal(j["price"]),
-            //            InitialPrice = ParseDecimal(j["initialprice"]),
-            //            Discount = ParseDecimal(j["discount"]),
-            //            CCU = ParseInt(j["ccu"])
-            //        });
-            //    }
-            //    else
-            //    {
-            //        Console.Write("it just works");
-            //    }
-            //}
+                if (game.AppId.ToString() != prop.Name)
+                {
+                    games.Add(new Game
+                    {
+                        AppId = ParseInt(j["appid"]),
+                        Name = (string)j["name"] ?? "",
+                        Developer = (string)j["developer"] ?? "",
+                        Publisher = (string)j["publisher"] ?? "",
+                        ScoreRank = j["score_rank"]?.ToString() ?? "",
+                        PositiveReviews = ParseInt(j["positive"]),
+                        NegativeReviews = ParseInt(j["negative"]),
+                        UserScore = ParseInt(j["userscore"]),
+                        Owners = (string)j["owners"] ?? "",
+                        AverageForever = ParseDecimal(j["average_forever"]),
+                        Average2Weeks = ParseDecimal(j["average_2weeks"]),
+                        MedianForever = ParseDecimal(j["median_forever"]),
+                        Median2Weeks = ParseDecimal(j["median_2weeks"]),
+                        Price = ParseDecimal(j["price"]),
+                        InitialPrice = ParseDecimal(j["initialprice"]),
+                        Discount = ParseDecimal(j["discount"]),
+                        CCU = ParseInt(j["ccu"])
+                    });
+                }
+            }
         }
 
         return games;
@@ -243,12 +217,11 @@ public class SteamSpyService : ISteamSpyService
                 .OrderBy("AppId")
                 .EqualTo(appId)
                 .OnceAsync<Game>();
-            Console.WriteLine(matching.FirstOrDefault()?.Object.Name);
+
             return matching.FirstOrDefault()?.Object;
         }
         catch (Exception ex)
         {
-            // Log the error or handle it appropriately
             Console.WriteLine($"Error retrieving game with AppId {appId}: {ex.Message}");
             return null;
         }
