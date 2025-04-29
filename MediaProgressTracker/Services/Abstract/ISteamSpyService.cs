@@ -8,7 +8,6 @@ namespace MediaProgressTracker.Services.Abstract
         Task GetAllGamesAsync();
         Task<IEnumerable<Game>> GetTop100In2WeeksAsync();
         public Game ReturnGame(JToken j);
-        //Task<List<Game>> GetGameData(HttpResponseMessage response);
         Task<Game> GetGameByAppIdAsync(int appId);
     }
 }

@@ -10,13 +10,11 @@ namespace MediaProgressTracker.ViewModels
     {
         private readonly ISteamSpyService _steamSpy;
 
-        // 1. Collection for binding
         public ObservableCollection<Game> TopGames { get; } = new ObservableCollection<Game>();
 
         [ObservableProperty]
         private bool isBusy;
 
-        // 2. Exposed command to trigger loading
         public IAsyncRelayCommand LoadDataCommand { get; }
 
         public MainViewModel(ISteamSpyService steamSpyService)
@@ -24,7 +22,6 @@ namespace MediaProgressTracker.ViewModels
             _steamSpy = steamSpyService;
 
             Load();
-            //LoadDataCommand = new AsyncRelayCommand(LoadTopGamesAsync);
         }
 
         private async Task Load()
@@ -37,7 +34,6 @@ namespace MediaProgressTracker.ViewModels
                 TopGames.Add(g);
             }
         }
-
 
         private async Task LoadTopGamesAsync()
         {
