@@ -4,7 +4,6 @@ using MediaProgressTracker.Models;
 using MediaProgressTracker.Services.Abstract;
 using Newtonsoft.Json.Linq;
 using System.Globalization;
-using System.Text.Json;
 
 public class SteamSpyService : ISteamSpyService
 {
@@ -38,30 +37,29 @@ public class SteamSpyService : ISteamSpyService
 
     public async Task GetAllGamesAsync()
     {
-        var games = new List<Game>();
-
         for (int i = 0; i <= 79; i++)
         {
             var response = await _httpClient.GetAsync($"api.php?request=all&page={i}");
             response.EnsureSuccessStatusCode();
+            var content = await response.Content.ReadAsStringAsync();
+            var root = JObject.Parse(content);
 
-            games = await GetGameData(response);
+            foreach (var prop in root.Properties())
+            {
+                var j = (JObject)prop.Value;
+
+                var gameExists = await GameExistsAsync(int.Parse(prop.Name));
+
+                if (!gameExists)
+                {
+                    await _firebaseClient.Child("Games").PostAsync(ReturnGame(j));
+                }
+            }
         }
-
-        foreach (var game in games)
-        {
-            await _firebaseClient.Child("Games").PostAsync(game);
-        }
-
     }
 
     public async Task<IEnumerable<Game>> GetTop100In2WeeksAsync()
     {
-        //await ToJsonCS();
-
-        //Console.WriteLine(File.ReadAllText("all_games.json"));
-        //var content1 = await response1.Content.ReadAsStringAsync();
-
         var response = await _httpClient.GetAsync("api.php?request=top100in2weeks");
         response.EnsureSuccessStatusCode();
         var content = await response.Content.ReadAsStringAsync();
@@ -91,89 +89,65 @@ public class SteamSpyService : ISteamSpyService
                      : 0;
             }
 
-            games.Add(new Game
-            {
-                AppId = ParseInt(j["appid"]),
-                Name = (string)j["name"] ?? "",
-                Developer = (string)j["developer"] ?? "",
-                Publisher = (string)j["publisher"] ?? "",
-                ScoreRank = j["score_rank"]?.ToString() ?? "",
-                PositiveReviews = ParseInt(j["positive"]),
-                NegativeReviews = ParseInt(j["negative"]),
-                UserScore = ParseInt(j["userscore"]),
-                Owners = (string)j["owners"] ?? "",
-                AverageForever = ParseDecimal(j["average_forever"]),
-                Average2Weeks = ParseDecimal(j["average_2weeks"]),
-                MedianForever = ParseDecimal(j["median_forever"]),
-                Median2Weeks = ParseDecimal(j["median_2weeks"]),
-                Price = ParseDecimal(j["price"]),
-                InitialPrice = ParseDecimal(j["initialprice"]),
-                Discount = ParseDecimal(j["discount"]),
-                CCU = ParseInt(j["ccu"])
-            });
+            games.Add(ReturnGame(j));
         }
 
         return games;
     }
 
-    public async Task<List<Game>> GetGameData(HttpResponseMessage response)
+    public Game ReturnGame(JToken j)
     {
-        var content = await response.Content.ReadAsStringAsync();
-        var root = JObject.Parse(content);
-        var games = new List<Game>(root.Count);
-
-        decimal ParseDecimal(JToken token)
+        return new Game
         {
-            if (token == null) return 0m;
-            var s = token.Type == JTokenType.String
-                    ? (string)token
-                    : token.ToString();
-            return decimal.TryParse(s, NumberStyles.Any, CultureInfo.InvariantCulture, out var d)
-                 ? d
-                 : 0m;
-        }
+            AppId = ParseInt(j["appid"]),
+            Name = (string)j["name"] ?? "",
+            Developer = (string)j["developer"] ?? "",
+            Publisher = (string)j["publisher"] ?? "",
+            ScoreRank = j["score_rank"]?.ToString() ?? "",
+            PositiveReviews = ParseInt(j["positive"]),
+            NegativeReviews = ParseInt(j["negative"]),
+            UserScore = ParseInt(j["userscore"]),
+            Owners = (string)j["owners"] ?? "",
+            AverageForever = ParseDecimal(j["average_forever"]),
+            Average2Weeks = ParseDecimal(j["average_2weeks"]),
+            MedianForever = ParseDecimal(j["median_forever"]),
+            Median2Weeks = ParseDecimal(j["median_2weeks"]),
+            Price = ParseDecimal(j["price"]),
+            InitialPrice = ParseDecimal(j["initialprice"]),
+            Discount = ParseDecimal(j["discount"]),
+            CCU = ParseInt(j["ccu"])
+        };
+    }
 
-        int ParseInt(JToken token)
-        {
-            if (token == null) return 0;
-            return int.TryParse(token.ToString(), out var i)
-            ? i
-            : 0;
-        }
+    private decimal ParseDecimal(JToken token)
+    {
+        if (token == null) return 0m;
+        var s = token.Type == JTokenType.String
+                ? (string)token
+                : token.ToString();
+        return decimal.TryParse(s, NumberStyles.Any, CultureInfo.InvariantCulture, out var d)
+             ? d
+             : 0m;
+    }
 
-        foreach (var prop in root.Properties())
-        {
-            var j = (JObject)prop.Value;
+    private int ParseInt(JToken token)
+    {
+        if (token == null) return 0;
+        return int.TryParse(token.ToString(), out var i)
+        ? i
+        : 0;
+    }
 
-            foreach (var game in gameListDb)
-            {
-                if (game.AppId.ToString() != prop.Name)
-                {
-                    games.Add(new Game
-                    {
-                        AppId = ParseInt(j["appid"]),
-                        Name = (string)j["name"] ?? "",
-                        Developer = (string)j["developer"] ?? "",
-                        Publisher = (string)j["publisher"] ?? "",
-                        ScoreRank = j["score_rank"]?.ToString() ?? "",
-                        PositiveReviews = ParseInt(j["positive"]),
-                        NegativeReviews = ParseInt(j["negative"]),
-                        UserScore = ParseInt(j["userscore"]),
-                        Owners = (string)j["owners"] ?? "",
-                        AverageForever = ParseDecimal(j["average_forever"]),
-                        Average2Weeks = ParseDecimal(j["average_2weeks"]),
-                        MedianForever = ParseDecimal(j["median_forever"]),
-                        Median2Weeks = ParseDecimal(j["median_2weeks"]),
-                        Price = ParseDecimal(j["price"]),
-                        InitialPrice = ParseDecimal(j["initialprice"]),
-                        Discount = ParseDecimal(j["discount"]),
-                        CCU = ParseInt(j["ccu"])
-                    });
-                }
-            }
-        }
 
-        return games;
+    public async Task<bool> GameExistsAsync(int appId)
+    {
+        var snapshot = await _firebaseClient
+            .Child("Games")
+            .OrderBy("AppId")
+            .EqualTo(appId)
+            .OnceAsync<Game>();
+
+        return snapshot.Any();
     }
 
     public async Task<Game> GetGameByAppIdAsync(int appId)

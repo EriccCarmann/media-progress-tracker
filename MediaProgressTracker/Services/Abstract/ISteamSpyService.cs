@@ -1,4 +1,5 @@
 ﻿using MediaProgressTracker.Models;
+using Newtonsoft.Json.Linq;
 
 namespace MediaProgressTracker.Services.Abstract
 {
@@ -6,7 +7,8 @@ namespace MediaProgressTracker.Services.Abstract
     {
         Task GetAllGamesAsync();
         Task<IEnumerable<Game>> GetTop100In2WeeksAsync();
-        Task<List<Game>> GetGameData(HttpResponseMessage response);
+        public Game ReturnGame(JToken j);
+        //Task<List<Game>> GetGameData(HttpResponseMessage response);
         Task<Game> GetGameByAppIdAsync(int appId);
     }
 }
