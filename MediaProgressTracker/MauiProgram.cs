@@ -1,6 +1,7 @@
 ﻿using Firebase.Database;
 using MediaProgressTracker.Pages;
 using MediaProgressTracker.Services.Abstract;
+using MediaProgressTracker.Services.Implementation;
 using MediaProgressTracker.ViewModels;
 using Microsoft.Extensions.Logging;
 
@@ -20,6 +21,7 @@ namespace MediaProgressTracker
                 });
 
             builder.Services.AddSingleton<ISteamSpyService, SteamSpyService>();
+            builder.Services.AddSingleton<IExceptionHandler, ExceptionHandler>();
 
             builder.Services.AddTransient<MainPage>();
 

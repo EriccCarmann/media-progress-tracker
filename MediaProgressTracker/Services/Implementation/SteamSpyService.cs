@@ -10,11 +10,14 @@ public class SteamSpyService : ISteamSpyService
     private readonly FirebaseClient _firebaseClient;
     private readonly HttpClient _httpClient;
     private readonly List<Game> gameListDb = new List<Game>();
+    private readonly IExceptionHandler _exceptionHandler;
     private const string BaseUrl = "https://steamspy.com/";
 
-    public SteamSpyService(FirebaseClient firebaseClient)
+    public SteamSpyService(FirebaseClient firebaseClient, IExceptionHandler exceptionHandler)
     {
         _firebaseClient = firebaseClient;
+        _exceptionHandler = exceptionHandler;
+
         _httpClient = new HttpClient
         {
             BaseAddress = new Uri(BaseUrl)
@@ -39,8 +42,13 @@ public class SteamSpyService : ISteamSpyService
     {
         for (int i = 0; i <= 79; i++)
         {
-            var response = await _httpClient.GetAsync($"api.php?request=all&page={i}");
-            response.EnsureSuccessStatusCode();
+            var response = await _exceptionHandler.HandleAsync(async () =>
+            {
+                var resp = await _httpClient.GetAsync($"api.php?request=all&page={i}");
+                resp.EnsureSuccessStatusCode();
+                return resp;
+            });
+
             var content = await response.Content.ReadAsStringAsync();
             var root = JObject.Parse(content);
 
@@ -60,8 +68,13 @@ public class SteamSpyService : ISteamSpyService
 
     public async Task<IEnumerable<Game>> GetTop100In2WeeksAsync()
     {
-        var response = await _httpClient.GetAsync("api.php?request=top100in2weeks");
-        response.EnsureSuccessStatusCode();
+        var response = await _exceptionHandler.HandleAsync(async () =>
+        {
+            var resp = await _httpClient.GetAsync("api.php?request=top100in2weeks");
+            resp.EnsureSuccessStatusCode();
+            return resp;
+        });
+
         var content = await response.Content.ReadAsStringAsync();
         var root = JObject.Parse(content);
         var games = new List<Game>(root.Count);
