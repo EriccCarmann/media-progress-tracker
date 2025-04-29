@@ -33,23 +33,7 @@ public class SteamSpyService : ISteamSpyService
             gameListDb.Add(game.Object);
         }
 
-        //var games = _firebaseClient
-        //                .Child("Games")
-        //                .AsObservable<Game>()
-        //                .Subscribe(d =>
-        //                {
-        //                    if (d.Object != null)
-        //                    {
-        //                        var updatedGame = d.Object;
-        //                    }
-        //                });
-
-
-        GetAllGamesAsync();
-
-
-        //Task.Run(async () => await GetAllGamesAsync());
-
+        Task.Run(async () => await GetAllGamesAsync());
     }
 
     public async Task GetAllGamesAsync()
@@ -132,22 +116,6 @@ public class SteamSpyService : ISteamSpyService
         return games;
     }
 
-    public async Task ToJsonCS()
-    {
-        var response1 = await _httpClient.GetAsync("api.php?request=appdetails&appid=730");
-        response1.EnsureSuccessStatusCode();
-
-        string jsonContent = await response1.Content.ReadAsStringAsync();
-        string json = JsonSerializer.Serialize(jsonContent);
-
-        // Get the app's private storage path
-        string folder = FileSystem.AppDataDirectory;
-        // e.g. /data/user/0/com.yourcompany.yourapp/files
-        string filePath = Path.Combine(folder, "all_games.json");
-
-        File.WriteAllText(filePath, json);
-    }
-
     public async Task<List<Game>> GetGameData(HttpResponseMessage response)
     {
         var content = await response.Content.ReadAsStringAsync();
@@ -223,6 +191,25 @@ public class SteamSpyService : ISteamSpyService
         catch (Exception ex)
         {
             Console.WriteLine($"Error retrieving game with AppId {appId}: {ex.Message}");
+            return null;
+        }
+    }
+
+    public async Task<Game> GetGameByNameAsync(string name)
+    {
+        try
+        {
+            var matching = await _firebaseClient
+                .Child("Games")
+                .OrderBy("Name")
+                .EqualTo(name)
+                .OnceAsync<Game>();
+
+            return matching.FirstOrDefault()?.Object;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error retrieving game with AppId {name}: {ex.Message}");
             return null;
         }
     }
