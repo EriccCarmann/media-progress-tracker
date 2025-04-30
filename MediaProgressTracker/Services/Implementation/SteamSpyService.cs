@@ -83,25 +83,6 @@ public class SteamSpyService : ISteamSpyService
         {
             var j = (JObject)prop.Value;
 
-            decimal ParseDecimal(JToken token)
-            {
-                if (token == null) return 0m;
-                var s = token.Type == JTokenType.String
-                        ? (string)token
-                        : token.ToString();
-                return decimal.TryParse(s, NumberStyles.Any, CultureInfo.InvariantCulture, out var d)
-                     ? d
-                     : 0m;
-            }
-
-            int ParseInt(JToken token)
-            {
-                if (token == null) return 0;
-                return int.TryParse(token.ToString(), out var i)
-                     ? i
-                     : 0;
-            }
-
             games.Add(ReturnGame(j));
         }
 
