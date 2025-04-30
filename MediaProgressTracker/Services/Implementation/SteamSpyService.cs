@@ -1,5 +1,6 @@
 ﻿using Firebase.Database;
 using Firebase.Database.Query;
+using MediaProgressTracker;
 using MediaProgressTracker.Models;
 using MediaProgressTracker.Services.Abstract;
 using Newtonsoft.Json.Linq;
@@ -23,16 +24,23 @@ public class SteamSpyService : ISteamSpyService
             BaseAddress = new Uri(BaseUrl)
         };
 
-        gameListDb.Clear();
-
-        var gamesDb = _firebaseClient
-                .Child("Games")
-                .OnceAsync<Game>()
-                .Result;
-
-        foreach (var game in gamesDb)
+        try
         {
-            gameListDb.Add(game.Object);
+            gameListDb.Clear();
+
+            var gamesDb = _firebaseClient
+                    .Child("Games")
+                    .OnceAsync<Game>()
+                    .Result;
+
+            foreach (var game in gamesDb)
+            {
+                gameListDb.Add(game.Object);
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error initializing game list: {ex.Message}");
         }
 
         Task.Run(async () => await GetAllGamesAsync());
@@ -40,53 +48,76 @@ public class SteamSpyService : ISteamSpyService
 
     public async Task GetAllGamesAsync()
     {
-        for (int i = 0; i <= 79; i++)
+        for (int i = 0; i <= Constants.SteamSpyPages; i++)
         {
-            var response = await _exceptionHandler.HandleAsync(async () =>
+            try
             {
-                var resp = await _httpClient.GetAsync($"api.php?request=all&page={i}");
-                resp.EnsureSuccessStatusCode();
-                return resp;
-            });
-
-            var content = await response.Content.ReadAsStringAsync();
-            var root = JObject.Parse(content);
-
-            foreach (var prop in root.Properties())
-            {
-                var j = (JObject)prop.Value;
-
-                var gameExists = await GameExistsAsync(int.Parse(prop.Name));
-
-                if (!gameExists)
+                var response = await _exceptionHandler.HandleAsync(async () =>
                 {
-                    await _firebaseClient.Child("Games").PostAsync(ReturnGame(j));
+                    var resp = await _httpClient.GetAsync($"api.php?request=all&page={i}");
+                    resp.EnsureSuccessStatusCode();
+                    return resp;
+                });
+
+                var content = await response.Content.ReadAsStringAsync();
+                var root = JObject.Parse(content);
+
+                foreach (var prop in root.Properties())
+                {
+                    var j = (JObject)prop.Value;
+
+                    var gameExists = await GameExistsAsync(int.Parse(prop.Name));
+
+                    if (!gameExists)
+                    {
+                        try
+                        {
+                            await _firebaseClient.Child("Games").PostAsync(ReturnGame(j));
+                        }
+                        catch (Exception ex)
+                        {
+                            Console.WriteLine($"Error adding game {prop.Name} to Firebase: {ex.Message}");
+                            continue;
+                        }
+                    }
                 }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error processing page {i}: {ex.Message}");
+                continue;
             }
         }
     }
 
     public async Task<IEnumerable<Game>> GetTop100In2WeeksAsync()
     {
-        var response = await _exceptionHandler.HandleAsync(async () =>
+        try
         {
-            var resp = await _httpClient.GetAsync("api.php?request=top100in2weeks");
-            resp.EnsureSuccessStatusCode();
-            return resp;
-        });
+            var response = await _exceptionHandler.HandleAsync(async () =>
+            {
+                var resp = await _httpClient.GetAsync("api.php?request=top100in2weeks");
+                resp.EnsureSuccessStatusCode();
+                return resp;
+            });
 
-        var content = await response.Content.ReadAsStringAsync();
-        var root = JObject.Parse(content);
-        var games = new List<Game>(root.Count);
+            var content = await response.Content.ReadAsStringAsync();
+            var root = JObject.Parse(content);
+            var games = new List<Game>(root.Count);
 
-        foreach (var prop in root.Properties())
-        {
-            var j = (JObject)prop.Value;
+            foreach (var prop in root.Properties())
+            {
+                var j = (JObject)prop.Value;
+                games.Add(ReturnGame(j));
+            }
 
-            games.Add(ReturnGame(j));
+            return games;
         }
-
-        return games;
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error getting top 100 games: {ex.Message}");
+            return Enumerable.Empty<Game>();
+        }
     }
 
     public Game ReturnGame(JToken j)
@@ -135,13 +166,21 @@ public class SteamSpyService : ISteamSpyService
 
     public async Task<bool> GameExistsAsync(int appId)
     {
-        var snapshot = await _firebaseClient
-            .Child("Games")
-            .OrderBy("AppId")
-            .EqualTo(appId)
-            .OnceAsync<Game>();
+        try
+        {
+            var snapshot = await _firebaseClient
+                .Child("Games")
+                .OrderBy("AppId")
+                .EqualTo(appId)
+                .OnceAsync<Game>();
 
-        return snapshot.Any();
+            return snapshot.Any();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error checking if game {appId} exists: {ex.Message}");
+            return false;
+        }
     }
 
     public async Task<Game> GetGameByAppIdAsync(int appId)

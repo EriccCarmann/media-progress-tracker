@@ -19,6 +19,11 @@ namespace MediaProgressTracker.Services.Implementation
             {
                 return await action();
             }
+            catch (HttpRequestException hrex)
+            {
+                _logger.LogError(hrex, "Http request error");
+                throw;
+            }
             catch (FirebaseException fex)
             {
                 _logger.LogError(fex, "Firebase error");

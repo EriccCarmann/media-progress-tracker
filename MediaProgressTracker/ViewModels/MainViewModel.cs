@@ -15,39 +15,65 @@ namespace MediaProgressTracker.ViewModels
         [ObservableProperty]
         private bool isBusy;
 
+        //[ObservableProperty]
+        //private string errorMessage;
+
         public IAsyncRelayCommand LoadDataCommand { get; }
 
         public MainViewModel(ISteamSpyService steamSpyService)
         {
             _steamSpy = steamSpyService;
+            LoadDataCommand = new AsyncRelayCommand(LoadTopGamesAsync);
 
             Load();
         }
 
         private async Task Load()
         {
-            var games = await _steamSpy.GetTop100In2WeeksAsync();
-            TopGames.Clear();
-            Console.Write(games);
-            foreach (var g in games)
+            try
             {
-                TopGames.Add(g);
+                var games = await _steamSpy.GetTop100In2WeeksAsync();
+
+                TopGames.Clear();
+
+                foreach (var g in games)
+                {
+                    TopGames.Add(g);
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error loading initial data: {ex.Message}");
+                throw;
+               // ErrorMessage = $"Error loading initial data: {ex.Message}";
             }
         }
 
         private async Task LoadTopGamesAsync()
         {
             if (IsBusy) return;
-            IsBusy = true;
-
-            var games = await _steamSpy.GetTop100In2WeeksAsync();
-            TopGames.Clear();
-            foreach (var g in games)
+            
+            try
             {
-                TopGames.Add(g);
-            }
+                IsBusy = true;
+                //ErrorMessage = string.Empty;
 
-            IsBusy = false;
+                var games = await _steamSpy.GetTop100In2WeeksAsync();
+                TopGames.Clear();
+                foreach (var g in games)
+                {
+                    TopGames.Add(g);
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error loading top games: {ex.Message}");
+                throw;
+            }
+            finally
+            {
+                IsBusy = false;
+            }
         }
     }
 }
